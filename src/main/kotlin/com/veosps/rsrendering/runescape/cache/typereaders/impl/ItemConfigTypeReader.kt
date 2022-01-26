@@ -7,7 +7,7 @@ import io.netty.buffer.ByteBuf
 class ItemConfigTypeReader : TypeReader
 
 fun ByteBuf.read(id: Int): ItemConfigType {
-    val type = ItemConfigType()
+    val type = ItemConfigType(id)
     while (isReadable) {
         val instruction = readUnsignedByte().toInt()
         if (instruction == 0) break

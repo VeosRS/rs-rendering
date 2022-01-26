@@ -19,7 +19,7 @@ import io.netty.buffer.ByteBuf
 import io.netty.util.ReferenceCounted
 
 /** Wraps this [ByteBuf] into a [BitBuf]. */
-public fun ByteBuf.toBitBuf(): BitBuf = BitBufImpl(this)
+fun ByteBuf.toBitBuf(): BitBuf = BitBufImpl(this)
 
 /**
  * Wrapper around [ByteBuf] that allows for writing non byte-aligned bits. This implementation maintains the
@@ -28,30 +28,30 @@ public fun ByteBuf.toBitBuf(): BitBuf = BitBufImpl(this)
  *
  * To create a [BitBuf] use [ByteBuf.toBitBuf] factory method.
  */
-public interface BitBuf : ReferenceCounted {
-    public val byteBuf: ByteBuf
+interface BitBuf : ReferenceCounted {
+    val byteBuf: ByteBuf
 
     /** The [ByteBuf.capacity] in terms of bits. */
-    public val capacity: Long
+    val capacity: Long
 
     /** The maximum [ByteBuf.capacity] in terms of bits. */
-    public val maxCapacity: Long
+    val maxCapacity: Long
 
     /**
      * Reader index in terms of bits. Modifying this reader index also modifies the underlying [ByteBuf.readerIndex].
      */
-    public var readerIndex: Long
+    var readerIndex: Long
 
     /** Returns the number of readable bits. */
-    public fun readableBits(): Long = writerIndex - readerIndex
+    fun readableBits(): Long = writerIndex - readerIndex
 
     /**
      * Writer index in terms of bits. Modifying this writer index also modifies the underlying [ByteBuf.writerIndex].
      */
-    public var writerIndex: Long
+    var writerIndex: Long
 
     /** Returns the number of writable bits. */
-    public fun writableBits(): Long = capacity - writerIndex
+    fun writableBits(): Long = capacity - writerIndex
 
     /**
      * Gets a [Boolean] at the specified absolute bit [index] in this buffer. This method does not modify [readerIndex]
@@ -60,7 +60,7 @@ public interface BitBuf : ReferenceCounted {
      *
      * @throws IndexOutOfBoundsException if the [index] is less than 0 or index + 1 is greater than [capacity]
      */
-    public fun getBoolean(index: Long): Boolean
+    fun getBoolean(index: Long): Boolean
 
     /**
      * Gets a [UInt] at the specified absolute bit [index] in this buffer. This method does not modify [readerIndex]
@@ -69,7 +69,7 @@ public interface BitBuf : ReferenceCounted {
      * @throws IllegalArgumentException if the [amount] is less than 0 or greater than [Int.SIZE_BITS]
      * @throws IndexOutOfBoundsException if the [index] is less than 0 or index + 1 is greater than [capacity]
      */
-    public fun getUnsignedBits(index: Long, amount: Int): UInt
+    fun getUnsignedBits(index: Long, amount: Int): UInt
 
     /**
      * Sets the [value] at the specified absolute bit [index] in this buffer. This method does not modify [readerIndex]
@@ -78,7 +78,7 @@ public interface BitBuf : ReferenceCounted {
      *
      * @throws IndexOutOfBoundsException if the specified [index] is less than 0 or index + 1 is greater than [capacity]
      */
-    public fun setBoolean(index: Long, value: Boolean): BitBuf = setBits(index, 1, if (value) 1 else 0)
+    fun setBoolean(index: Long, value: Boolean): BitBuf = setBits(index, 1, if (value) 1 else 0)
 
     /**
      * Sets the [value] at the specified absolute bit [index] in this buffer encoded in [amount] of bits. This method
@@ -87,7 +87,7 @@ public interface BitBuf : ReferenceCounted {
      * @throws IllegalArgumentException if the [amount] is less than 0 or greater than [Int.SIZE_BITS]
      * @throws IndexOutOfBoundsException if the specified [index] is less than 0 or index + 1 is greater than [capacity]
      */
-    public fun setBits(index: Long, amount: Int, value: Int): BitBuf
+    fun setBits(index: Long, amount: Int, value: Int): BitBuf
 
 
     /**
@@ -96,7 +96,7 @@ public interface BitBuf : ReferenceCounted {
      *
      * @throws IndexOutOfBoundsException if [readableBits] is less than 1
      */
-    public fun readBoolean(): Boolean
+    fun readBoolean(): Boolean
 
     /**
      * Gets [amount] of bits as an unsigned value at the current [readerIndex] and increases the [readerIndex] by
@@ -105,7 +105,7 @@ public interface BitBuf : ReferenceCounted {
      *
      * @throws IndexOutOfBoundsException if [readableBits] is less than [amount]
      */
-    public fun readUnsignedBits(amount: Int): UInt
+    fun readUnsignedBits(amount: Int): UInt
 
     /**
      * Writes a [Boolean] at the current [writerIndex] and increases the [writerIndex] by 1 in this buffer. This method
@@ -113,7 +113,7 @@ public interface BitBuf : ReferenceCounted {
      *
      * @throws IndexOutOfBoundsException if [writableBits] is less than 1
      */
-    public fun writeBoolean(value: Boolean): BitBuf
+    fun writeBoolean(value: Boolean): BitBuf
 
     /**
      * Writes a [value] in [amount] of bits at the current [writerIndex] and increases the [writerIndex] by [amount] in
@@ -121,5 +121,5 @@ public interface BitBuf : ReferenceCounted {
      *
      * @throws IndexOutOfBoundsException if [writableBits] is less than [amount]
      */
-    public fun writeBits(value: Int, amount: Int): BitBuf
+    fun writeBits(value: Int, amount: Int): BitBuf
 }

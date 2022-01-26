@@ -5,16 +5,16 @@ class Timer {
         private set
 
     fun init() {
-        lastLoopTime = time
+        lastLoopTime = time()
     }
 
-    val time: Double = System.nanoTime() / 1000000000.0
+    fun time() = System.nanoTime() / 1_000_000_000.0
 
-    val elapsedTime: Float
-        get() {
-            val time = time
-            val elapsedTime = (time - lastLoopTime).toFloat()
-            lastLoopTime = time
-            return elapsedTime
-        }
+    fun elapsedTime(): Float {
+        val time = time()
+        val elapsedTime = (time - lastLoopTime).toFloat()
+        lastLoopTime = time
+
+        return elapsedTime
+    }
 }

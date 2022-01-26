@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("DuplicatedCode")
+
 package com.veosps.rsrendering.runescape.buffer
 
 import io.netty.buffer.ByteBuf
@@ -20,12 +22,12 @@ import io.netty.util.ReferenceCounted
 import kotlin.math.ceil
 import kotlin.math.min
 
-public class BitBufImpl internal constructor(public override val byteBuf: ByteBuf) : BitBuf {
-    public override val capacity: Long get() = byteBuf.capacity().toLong() * Byte.SIZE_BITS
+class BitBufImpl internal constructor(override val byteBuf: ByteBuf) : BitBuf {
+    override val capacity: Long get() = byteBuf.capacity().toLong() * Byte.SIZE_BITS
 
-    public override val maxCapacity: Long get() = byteBuf.maxCapacity().toLong() * Byte.SIZE_BITS
+    override val maxCapacity: Long get() = byteBuf.maxCapacity().toLong() * Byte.SIZE_BITS
 
-    public override var readerIndex: Long = byteBuf.readerIndex().toLong() * Byte.SIZE_BITS
+    override var readerIndex: Long = byteBuf.readerIndex().toLong() * Byte.SIZE_BITS
         get() {
             if (byteBuf.readerIndex() != ceil(field / Byte.SIZE_BITS.toDouble()).toInt()) {
                 field = byteBuf.readerIndex().toLong() * Byte.SIZE_BITS
@@ -37,9 +39,9 @@ public class BitBufImpl internal constructor(public override val byteBuf: ByteBu
             byteBuf.readerIndex(ceil(field / Byte.SIZE_BITS.toDouble()).toInt())
         }
 
-    public override fun readableBits(): Long = writerIndex - readerIndex
+    override fun readableBits(): Long = writerIndex - readerIndex
 
-    public override var writerIndex: Long = byteBuf.writerIndex().toLong() * Byte.SIZE_BITS
+    override var writerIndex: Long = byteBuf.writerIndex().toLong() * Byte.SIZE_BITS
         get() {
             if (byteBuf.writerIndex() != ceil(field / Byte.SIZE_BITS.toDouble()).toInt()) {
                 field = byteBuf.writerIndex().toLong() * Byte.SIZE_BITS
@@ -51,11 +53,11 @@ public class BitBufImpl internal constructor(public override val byteBuf: ByteBu
             byteBuf.writerIndex(ceil(field.toDouble() / Byte.SIZE_BITS).toInt())
         }
 
-    public override fun writableBits(): Long = capacity - writerIndex
+    override fun writableBits(): Long = capacity - writerIndex
 
-    public override fun getBoolean(index: Long): Boolean = getUnsignedBits(index, 1) == 1u
+    override fun getBoolean(index: Long): Boolean = getUnsignedBits(index, 1) == 1u
 
-    public override fun getUnsignedBits(index: Long, amount: Int): UInt {
+    override fun getUnsignedBits(index: Long, amount: Int): UInt {
         require(amount > 0 && amount <= Int.SIZE_BITS) { "Amount should be between 0 and ${Int.SIZE_BITS} bits." }
         if (index < 0 || (index + amount) > capacity) throw IndexOutOfBoundsException(
             "index: $index, length: $capacity (expected: range(0, $capacity))"
@@ -76,9 +78,9 @@ public class BitBufImpl internal constructor(public override val byteBuf: ByteBu
         return value
     }
 
-    public override fun setBoolean(index: Long, value: Boolean): BitBuf = setBits(index, 1, if (value) 1 else 0)
+    override fun setBoolean(index: Long, value: Boolean): BitBuf = setBits(index, 1, if (value) 1 else 0)
 
-    public override fun setBits(index: Long, amount: Int, value: Int): BitBuf {
+    override fun setBits(index: Long, amount: Int, value: Int): BitBuf {
         require(amount > 0 && amount <= Int.SIZE_BITS) { "Amount should be between 0 and ${Int.SIZE_BITS} bits." }
         if (index < 0 || (index + amount) > capacity) throw IndexOutOfBoundsException(
             "index: $index, length: $capacity (expected: range(0, $capacity))"
@@ -100,9 +102,9 @@ public class BitBufImpl internal constructor(public override val byteBuf: ByteBu
         return this
     }
 
-    public override fun readBoolean(): Boolean = readUnsignedBits(1) == 1u
+    override fun readBoolean(): Boolean = readUnsignedBits(1) == 1u
 
-    public override fun readUnsignedBits(amount: Int): UInt {
+    override fun readUnsignedBits(amount: Int): UInt {
         if (readableBits() < amount) throw IndexOutOfBoundsException(
             "readerIndex($readerIndex) + length($amount) exceeds writerIndex($writerIndex): $this"
         )
@@ -111,9 +113,9 @@ public class BitBufImpl internal constructor(public override val byteBuf: ByteBu
         return value
     }
 
-    public override fun writeBoolean(value: Boolean): BitBuf = writeBits(if (value) 1 else 0, 1)
+    override fun writeBoolean(value: Boolean): BitBuf = writeBits(if (value) 1 else 0, 1)
 
-    public override fun writeBits(value: Int, amount: Int): BitBuf {
+    override fun writeBits(value: Int, amount: Int): BitBuf {
         if (writableBits() < amount) throw IndexOutOfBoundsException(
             "writerIndex($writerIndex) + minWritableBits($amount) exceeds maxCapacity($maxCapacity): $this"
         )

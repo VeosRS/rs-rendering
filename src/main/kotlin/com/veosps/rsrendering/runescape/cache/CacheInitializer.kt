@@ -1,6 +1,7 @@
 package com.veosps.rsrendering.runescape.cache
 
 import com.displee.cache.CacheLibrary
+import com.veosps.rsrendering.opengl.game.DummyInitializer
 import com.veosps.rsrendering.runescape.cache.types.TypeManager
 import org.springframework.beans.factory.InitializingBean
 import org.springframework.stereotype.Component
@@ -10,7 +11,8 @@ lateinit var cache: CacheLibrary
 
 @Component
 class CacheInitializer(
-    val typeManager: TypeManager
+    private val typeManager: TypeManager,
+    private val dummyInitializer: DummyInitializer
 ) : InitializingBean {
 
     override fun afterPropertiesSet() {
@@ -29,6 +31,8 @@ class CacheInitializer(
         //textureArchive().cache()
 
         typeManager.load()
+
+        dummyInitializer.start()
     }
 }
 

@@ -13,10 +13,10 @@ import org.springframework.stereotype.Component
 
 private val logger = InlineLogger()
 
+val itemConfigList: MutableList<ItemConfigType> = mutableListOf()
+
 @Component
-class TypeManager(
-    private val itemConfigList: MutableList<ItemConfigType> = mutableListOf()
-) {
+class TypeManager {
 
     fun load() {
         itemConfigs()?.files?.forEach { (id, file) ->

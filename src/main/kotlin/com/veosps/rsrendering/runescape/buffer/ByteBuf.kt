@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright 2018-2021 Guthix
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,89 +13,90 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("unused")
+
 package com.veosps.rsrendering.runescape.buffer
 
 import io.netty.buffer.ByteBuf
 import io.netty.util.ByteProcessor
 import java.io.IOException
 import java.nio.charset.Charset
-import kotlin.experimental.and
 
 private const val HALF_BYTE = 128
 
-public val Charsets.CP_1252: Charset get() = WINDOWS_1252
+val Charsets.CP_1252: Charset get() = WINDOWS_1252
 
-public val Charsets.WINDOWS_1252: Charset by lazy { Charset.forName("windows-1252") }
+val Charsets.WINDOWS_1252: Charset by lazy { Charset.forName("windows-1252") }
 
-public val Charsets.CESU_8: Charset by lazy { Charset.forName("CESU-8") }
+val Charsets.CESU_8: Charset by lazy { Charset.forName("CESU-8") }
 
-public fun ByteBuf.getByteNeg(index: Int): Byte = (-getByte(index)).toByte()
+fun ByteBuf.getByteNeg(index: Int): Byte = (-getByte(index)).toByte()
 
-public fun ByteBuf.getByteAdd(index: Int): Byte = (getByte(index) - HALF_BYTE).toByte()
+fun ByteBuf.getByteAdd(index: Int): Byte = (getByte(index) - HALF_BYTE).toByte()
 
-public fun ByteBuf.getByteSub(index: Int): Byte = (HALF_BYTE - getByte(index)).toByte()
+fun ByteBuf.getByteSub(index: Int): Byte = (HALF_BYTE - getByte(index)).toByte()
 
-public fun ByteBuf.getUnsignedByteNeg(index: Int): Short = (-getByte(index) and 0xFF).toShort()
+fun ByteBuf.getUnsignedByteNeg(index: Int): Short = (-getByte(index) and 0xFF).toShort()
 
-public fun ByteBuf.getUnsignedByteAdd(index: Int): Short = ((getByte(index) - HALF_BYTE) and 0xFF).toShort()
+fun ByteBuf.getUnsignedByteAdd(index: Int): Short = ((getByte(index) - HALF_BYTE) and 0xFF).toShort()
 
-public fun ByteBuf.getUnsignedByteSub(index: Int): Short = ((HALF_BYTE - getByte(index)) and 0xFf).toShort()
+fun ByteBuf.getUnsignedByteSub(index: Int): Short = ((HALF_BYTE - getByte(index)) and 0xFf).toShort()
 
-public fun ByteBuf.getShortAdd(index: Int): Short = ((getByte(index).toInt() shl Byte.SIZE_BITS) or
-    ((getByte(index + 1) - HALF_BYTE) and 0xFF)).toShort()
+fun ByteBuf.getShortAdd(index: Int): Short = ((getByte(index).toInt() shl Byte.SIZE_BITS) or
+        ((getByte(index + 1) - HALF_BYTE) and 0xFF)).toShort()
 
-public fun ByteBuf.getShortLEAdd(index: Int): Short = (((getByte(index) - HALF_BYTE) and 0xFF) or
-    (getByte(index + 1).toInt() shl Byte.SIZE_BITS)).toShort()
+fun ByteBuf.getShortLEAdd(index: Int): Short = (((getByte(index) - HALF_BYTE) and 0xFF) or
+        (getByte(index + 1).toInt() shl Byte.SIZE_BITS)).toShort()
 
-public fun ByteBuf.getUnsignedShortAdd(index: Int): Int = (getUnsignedByte(index).toInt() shl Byte.SIZE_BITS) or
-    ((getByte(index + 1) - HALF_BYTE) and 0xFF)
+fun ByteBuf.getUnsignedShortAdd(index: Int): Int = (getUnsignedByte(index).toInt() shl Byte.SIZE_BITS) or
+        ((getByte(index + 1) - HALF_BYTE) and 0xFF)
 
-public fun ByteBuf.getUnsignedShortLEAdd(index: Int): Int = ((getByte(index) - HALF_BYTE) and 0xFF) or
-    (getUnsignedByte(index + 1).toInt() shl Byte.SIZE_BITS)
+fun ByteBuf.getUnsignedShortLEAdd(index: Int): Int = ((getByte(index) - HALF_BYTE) and 0xFF) or
+        (getUnsignedByte(index + 1).toInt() shl Byte.SIZE_BITS)
 
-public fun ByteBuf.getMediumLME(index: Int): Int = (getShortLE(index).toInt() shl Byte.SIZE_BITS) or
-    getUnsignedByte(index + Short.SIZE_BYTES).toInt()
+fun ByteBuf.getMediumLME(index: Int): Int = (getShortLE(index).toInt() shl Byte.SIZE_BITS) or
+        getUnsignedByte(index + Short.SIZE_BYTES).toInt()
 
-public fun ByteBuf.getMediumRME(index: Int): Int = (getByte(index).toInt() shl Short.SIZE_BITS) or
-    getUnsignedShortLE(index + Byte.SIZE_BYTES)
+fun ByteBuf.getMediumRME(index: Int): Int = (getByte(index).toInt() shl Short.SIZE_BITS) or
+        getUnsignedShortLE(index + Byte.SIZE_BYTES)
 
-public fun ByteBuf.getUnsignedMediumLME(index: Int): Int = (getUnsignedShortLE(index) shl Byte.SIZE_BITS) or
-    getUnsignedByte(index + Short.SIZE_BYTES).toInt()
+fun ByteBuf.getUnsignedMediumLME(index: Int): Int = (getUnsignedShortLE(index) shl Byte.SIZE_BITS) or
+        getUnsignedByte(index + Short.SIZE_BYTES).toInt()
 
-public fun ByteBuf.getUnsignedMediumRME(index: Int): Int = (getUnsignedByte(index).toInt() shl Short.SIZE_BITS) or
-    getUnsignedShortLE(index + Byte.SIZE_BYTES)
+fun ByteBuf.getUnsignedMediumRME(index: Int): Int = (getUnsignedByte(index).toInt() shl Short.SIZE_BITS) or
+        getUnsignedShortLE(index + Byte.SIZE_BYTES)
 
-public fun ByteBuf.getIntME(index: Int): Int = (getShortLE(index).toInt() shl Short.SIZE_BITS) or
-    getUnsignedShortLE(index + Short.SIZE_BYTES)
+fun ByteBuf.getIntME(index: Int): Int = (getShortLE(index).toInt() shl Short.SIZE_BITS) or
+        getUnsignedShortLE(index + Short.SIZE_BYTES)
 
-public fun ByteBuf.getIntIME(index: Int): Int =
+fun ByteBuf.getIntIME(index: Int): Int =
     getUnsignedShort(index) or (getShort(index + Short.SIZE_BYTES).toInt() shl Short.SIZE_BITS)
 
-public fun ByteBuf.getUnsignedIntME(index: Int): Long = (getUnsignedShortLE(index).toLong() shl Short.SIZE_BITS) or
-    getUnsignedShortLE(index + Short.SIZE_BYTES).toLong()
+fun ByteBuf.getUnsignedIntME(index: Int): Long = (getUnsignedShortLE(index).toLong() shl Short.SIZE_BITS) or
+        getUnsignedShortLE(index + Short.SIZE_BYTES).toLong()
 
-public fun ByteBuf.getUnsignedIntIME(index: Int): Long = getUnsignedShort(index).toLong() or
-    (getUnsignedShort(index + Short.SIZE_BYTES).toLong() shl Short.SIZE_BITS)
+fun ByteBuf.getUnsignedIntIME(index: Int): Long = getUnsignedShort(index).toLong() or
+        (getUnsignedShort(index + Short.SIZE_BYTES).toLong() shl Short.SIZE_BITS)
 
-public fun ByteBuf.getSmallLong(index: Int): Long = (getMedium(index).toLong() shl Medium.SIZE_BITS) or
-    getUnsignedMedium(index + Medium.SIZE_BYTES).toLong()
+fun ByteBuf.getSmallLong(index: Int): Long = (getMedium(index).toLong() shl Medium.SIZE_BITS) or
+        getUnsignedMedium(index + Medium.SIZE_BYTES).toLong()
 
-public fun ByteBuf.getUnsignedSmallLong(index: Int): Long = (getUnsignedMedium(index).toLong() shl Medium.SIZE_BITS) or
-    getUnsignedMedium(index + Medium.SIZE_BYTES).toLong()
+fun ByteBuf.getUnsignedSmallLong(index: Int): Long = (getUnsignedMedium(index).toLong() shl Medium.SIZE_BITS) or
+        getUnsignedMedium(index + Medium.SIZE_BYTES).toLong()
 
-public fun ByteBuf.getBytes(index: Int, length: Int): ByteArray {
+fun ByteBuf.getBytes(index: Int, length: Int): ByteArray {
     val dest = ByteArray(length)
     getBytes(index, dest)
     return dest
 }
 
-public fun ByteBuf.getBytesReversed(index: Int, length: Int): ByteArray {
+fun ByteBuf.getBytesReversed(index: Int, length: Int): ByteArray {
     val dest = ByteArray(length)
     getBytesReversed(index, dest)
     return dest
 }
 
-public fun ByteBuf.getBytesReversed(index: Int, dest: ByteArray): ByteBuf {
+fun ByteBuf.getBytesReversed(index: Int, dest: ByteArray): ByteBuf {
     val endReaderIndex = index + dest.size - 1
     for ((writerIndex, readerIndex) in (endReaderIndex downTo index).withIndex()) {
         dest[writerIndex] = getByte(readerIndex)
@@ -103,26 +104,26 @@ public fun ByteBuf.getBytesReversed(index: Int, dest: ByteArray): ByteBuf {
     return this
 }
 
-public fun ByteBuf.getBytesAdd(index: Int, length: Int): ByteArray {
+fun ByteBuf.getBytesAdd(index: Int, length: Int): ByteArray {
     val dest = ByteArray(length)
     getBytesAdd(index, dest)
     return dest
 }
 
-public fun ByteBuf.getBytesAdd(index: Int, dest: ByteArray): ByteBuf {
+fun ByteBuf.getBytesAdd(index: Int, dest: ByteArray): ByteBuf {
     for (writerIndex in dest.indices) {
         dest[writerIndex] = getByteAdd(index + writerIndex)
     }
     return this
 }
 
-public fun ByteBuf.getBytesReversedAdd(index: Int, length: Int): ByteArray {
+fun ByteBuf.getBytesReversedAdd(index: Int, length: Int): ByteArray {
     val dest = ByteArray(length)
     getBytesReversedAdd(index, dest)
     return dest
 }
 
-public fun ByteBuf.getBytesReversedAdd(index: Int, dest: ByteArray): ByteBuf {
+fun ByteBuf.getBytesReversedAdd(index: Int, dest: ByteArray): ByteBuf {
     val endReaderIndex = index + dest.size - 1
     for ((writerIndex, readerIndex) in (endReaderIndex downTo index).withIndex()) {
         dest[writerIndex] = getByteAdd(readerIndex)
@@ -130,59 +131,59 @@ public fun ByteBuf.getBytesReversedAdd(index: Int, dest: ByteArray): ByteBuf {
     return this
 }
 
-public fun ByteBuf.setByteNeg(index: Int, value: Int): ByteBuf = setByte(index, -value)
+fun ByteBuf.setByteNeg(index: Int, value: Int): ByteBuf = setByte(index, -value)
 
-public fun ByteBuf.setByteAdd(index: Int, value: Int): ByteBuf = setByte(index, value + HALF_BYTE)
+fun ByteBuf.setByteAdd(index: Int, value: Int): ByteBuf = setByte(index, value + HALF_BYTE)
 
-public fun ByteBuf.setByteSub(index: Int, value: Int): ByteBuf = setByte(index, HALF_BYTE - value)
+fun ByteBuf.setByteSub(index: Int, value: Int): ByteBuf = setByte(index, HALF_BYTE - value)
 
-public fun ByteBuf.setShortAdd(index: Int, value: Int): ByteBuf {
+fun ByteBuf.setShortAdd(index: Int, value: Int): ByteBuf {
     setByte(index, value shr Byte.SIZE_BITS)
     setByte(index + Byte.SIZE_BYTES, value + HALF_BYTE)
     return this
 }
 
-public fun ByteBuf.setShortLEAdd(index: Int, value: Int): ByteBuf {
+fun ByteBuf.setShortLEAdd(index: Int, value: Int): ByteBuf {
     setByte(index, value + HALF_BYTE)
     setByte(index + Byte.SIZE_BYTES, value shr Byte.SIZE_BITS)
     return this
 }
 
-public fun ByteBuf.setMediumLME(index: Int, value: Int): ByteBuf {
+fun ByteBuf.setMediumLME(index: Int, value: Int): ByteBuf {
     setShortLE(index, value shr Byte.SIZE_BITS)
     setByte(index + Short.SIZE_BYTES, value)
     return this
 }
 
-public fun ByteBuf.setMediumRME(index: Int, value: Int): ByteBuf {
+fun ByteBuf.setMediumRME(index: Int, value: Int): ByteBuf {
     setByte(index, value shr Short.SIZE_BITS)
     setShortLE(index + Byte.SIZE_BYTES, value)
     return this
 }
 
-public fun ByteBuf.setIntME(index: Int, value: Int): ByteBuf {
+fun ByteBuf.setIntME(index: Int, value: Int): ByteBuf {
     setShortLE(index, value shr Short.SIZE_BITS)
     setShortLE(index + Short.SIZE_BYTES, value)
     return this
 }
 
-public fun ByteBuf.setIntIME(index: Int, value: Int): ByteBuf {
+fun ByteBuf.setIntIME(index: Int, value: Int): ByteBuf {
     setShort(index, value)
     setShort(index + Short.SIZE_BYTES, value shr Short.SIZE_BITS)
     return this
 }
 
-public fun ByteBuf.setSmallLong(index: Int, value: Long): ByteBuf {
+fun ByteBuf.setSmallLong(index: Int, value: Long): ByteBuf {
     setMedium(index, (value shr Medium.SIZE_BITS).toInt())
     setMedium(index + Medium.SIZE_BYTES, value.toInt())
     return this
 }
 
-public fun ByteBuf.setBytesReversed(index: Int, src: ByteArray): ByteBuf = setBytes(
+fun ByteBuf.setBytesReversed(index: Int, src: ByteArray): ByteBuf = setBytes(
     index, src.reversed().toByteArray()
 )
 
-public fun ByteBuf.setBytesReversed(index: Int, src: ByteBuf): ByteBuf {
+fun ByteBuf.setBytesReversed(index: Int, src: ByteBuf): ByteBuf {
     var j = index
     for (i in src.writerIndex() - 1 downTo src.readerIndex()) {
         setByte(j, src.getByte(i).toInt())
@@ -191,11 +192,11 @@ public fun ByteBuf.setBytesReversed(index: Int, src: ByteBuf): ByteBuf {
     return this
 }
 
-public fun ByteBuf.setBytesAdd(index: Int, src: ByteArray): ByteBuf = setBytes(index, src.map {
+fun ByteBuf.setBytesAdd(index: Int, src: ByteArray): ByteBuf = setBytes(index, src.map {
     (it + HALF_BYTE).toByte()
 }.toByteArray())
 
-public fun ByteBuf.setBytesAdd(index: Int, src: ByteBuf): ByteBuf {
+fun ByteBuf.setBytesAdd(index: Int, src: ByteBuf): ByteBuf {
     var j = index
     for (i in src.readerIndex() until src.writerIndex()) {
         setByte(j, src.getByte(i) + HALF_BYTE)
@@ -204,11 +205,11 @@ public fun ByteBuf.setBytesAdd(index: Int, src: ByteBuf): ByteBuf {
     return this
 }
 
-public fun ByteBuf.setBytesReversedAdd(index: Int, src: ByteArray): ByteBuf = setBytes(index, src.map {
+fun ByteBuf.setBytesReversedAdd(index: Int, src: ByteArray): ByteBuf = setBytes(index, src.map {
     (it + HALF_BYTE).toByte()
 }.reversed().toByteArray())
 
-public fun ByteBuf.setBytesReversedAdd(index: Int, src: ByteBuf): ByteBuf {
+fun ByteBuf.setBytesReversedAdd(index: Int, src: ByteBuf): ByteBuf {
     var j = index
     for (i in src.writerIndex() - 1 downTo src.readerIndex()) {
         setByte(j, src.getByte(i) + HALF_BYTE)
@@ -217,57 +218,57 @@ public fun ByteBuf.setBytesReversedAdd(index: Int, src: ByteBuf): ByteBuf {
     return this
 }
 
-public fun ByteBuf.readByteNeg(): Byte = (-readByte()).toByte()
+fun ByteBuf.readByteNeg(): Byte = (-readByte()).toByte()
 
-public fun ByteBuf.readByteAdd(): Byte = (readByte() - HALF_BYTE).toByte()
+fun ByteBuf.readByteAdd(): Byte = (readByte() - HALF_BYTE).toByte()
 
-public fun ByteBuf.readByteSub(): Byte = (HALF_BYTE - readByte()).toByte()
+fun ByteBuf.readByteSub(): Byte = (HALF_BYTE - readByte()).toByte()
 
-public fun ByteBuf.readUnsignedByteNeg(): Short = (-readByte() and 0xFF).toShort()
+fun ByteBuf.readUnsignedByteNeg(): Short = (-readByte() and 0xFF).toShort()
 
-public fun ByteBuf.readUnsignedByteAdd(): Short = ((readByte() - HALF_BYTE) and 0xFF).toShort()
+fun ByteBuf.readUnsignedByteAdd(): Short = ((readByte() - HALF_BYTE) and 0xFF).toShort()
 
-public fun ByteBuf.readUnsignedByteSub(): Short = ((HALF_BYTE - readByte()) and 0xFF).toShort()
+fun ByteBuf.readUnsignedByteSub(): Short = ((HALF_BYTE - readByte()) and 0xFF).toShort()
 
-public fun ByteBuf.readShortAdd(): Short = ((readByte().toInt() shl Byte.SIZE_BITS) or
-    ((readByte() - HALF_BYTE) and 0xFF)).toShort()
+fun ByteBuf.readShortAdd(): Short = ((readByte().toInt() shl Byte.SIZE_BITS) or
+        ((readByte() - HALF_BYTE) and 0xFF)).toShort()
 
-public fun ByteBuf.readShortLEAdd(): Short = (((readByte() - HALF_BYTE) and 0xFF) or
-    (readByte().toInt() shl Byte.SIZE_BITS)).toShort()
+fun ByteBuf.readShortLEAdd(): Short = (((readByte() - HALF_BYTE) and 0xFF) or
+        (readByte().toInt() shl Byte.SIZE_BITS)).toShort()
 
-public fun ByteBuf.readUnsignedShortAdd(): Int = (readUnsignedByte().toInt() shl Byte.SIZE_BITS) or
-    ((readByte() - HALF_BYTE) and 0xFF)
+fun ByteBuf.readUnsignedShortAdd(): Int = (readUnsignedByte().toInt() shl Byte.SIZE_BITS) or
+        ((readByte() - HALF_BYTE) and 0xFF)
 
-public fun ByteBuf.readUnsignedShortLEAdd(): Int = ((readByte() - HALF_BYTE) and 0xFF) or
-    (readUnsignedByte().toInt() shl Byte.SIZE_BITS)
+fun ByteBuf.readUnsignedShortLEAdd(): Int = ((readByte() - HALF_BYTE) and 0xFF) or
+        (readUnsignedByte().toInt() shl Byte.SIZE_BITS)
 
-public fun ByteBuf.readMediumLME(): Int = (readShortLE().toInt() shl Byte.SIZE_BITS) or
-    readUnsignedByte().toInt()
+fun ByteBuf.readMediumLME(): Int = (readShortLE().toInt() shl Byte.SIZE_BITS) or
+        readUnsignedByte().toInt()
 
-public fun ByteBuf.readMediumRME(): Int = (readByte().toInt() shl Short.SIZE_BITS) or readUnsignedShortLE()
+fun ByteBuf.readMediumRME(): Int = (readByte().toInt() shl Short.SIZE_BITS) or readUnsignedShortLE()
 
-public fun ByteBuf.readUnsignedMediumLME(): Int = (readUnsignedShortLE() shl Byte.SIZE_BITS) or
-    readUnsignedByte().toInt()
+fun ByteBuf.readUnsignedMediumLME(): Int = (readUnsignedShortLE() shl Byte.SIZE_BITS) or
+        readUnsignedByte().toInt()
 
-public fun ByteBuf.readUnsignedMediumRME(): Int = (readUnsignedByte().toInt() shl Short.SIZE_BITS) or
-    readUnsignedShortLE()
+fun ByteBuf.readUnsignedMediumRME(): Int = (readUnsignedByte().toInt() shl Short.SIZE_BITS) or
+        readUnsignedShortLE()
 
-public fun ByteBuf.readIntME(): Int = (readShortLE().toInt() shl Short.SIZE_BITS) or readUnsignedShortLE()
+fun ByteBuf.readIntME(): Int = (readShortLE().toInt() shl Short.SIZE_BITS) or readUnsignedShortLE()
 
-public fun ByteBuf.readIntIME(): Int = readUnsignedShort() or (readShort().toInt() shl Short.SIZE_BITS)
+fun ByteBuf.readIntIME(): Int = readUnsignedShort() or (readShort().toInt() shl Short.SIZE_BITS)
 
-public fun ByteBuf.readUnsignedIntME(): Long = (readUnsignedShortLE().toLong() shl Short.SIZE_BITS) or
-    readUnsignedShortLE().toLong()
+fun ByteBuf.readUnsignedIntME(): Long = (readUnsignedShortLE().toLong() shl Short.SIZE_BITS) or
+        readUnsignedShortLE().toLong()
 
-public fun ByteBuf.readUnsignedIntIME(): Long = readUnsignedShort().toLong() or
-    (readUnsignedShort().toLong() shl Short.SIZE_BITS)
+fun ByteBuf.readUnsignedIntIME(): Long = readUnsignedShort().toLong() or
+        (readUnsignedShort().toLong() shl Short.SIZE_BITS)
 
-public fun ByteBuf.readSmallLong(): Long = (readMedium().toLong() shl Medium.SIZE_BITS) or readUnsignedMedium().toLong()
+fun ByteBuf.readSmallLong(): Long = (readMedium().toLong() shl Medium.SIZE_BITS) or readUnsignedMedium().toLong()
 
-public fun ByteBuf.readUnsignedSmallLong(): Long = (readUnsignedMedium().toLong() shl Medium.SIZE_BITS) or
-    readUnsignedMedium().toLong()
+fun ByteBuf.readUnsignedSmallLong(): Long = (readUnsignedMedium().toLong() shl Medium.SIZE_BITS) or
+        readUnsignedMedium().toLong()
 
-public fun ByteBuf.readShortSmart(): Short {
+fun ByteBuf.readShortSmart(): Short {
     val peek = getByte(readerIndex()).toInt()
     return if (peek >= 0) {
         (readUnsignedByte().toInt() - Smart.BYTE_MOD).toShort()
@@ -276,7 +277,7 @@ public fun ByteBuf.readShortSmart(): Short {
     }
 }
 
-public fun ByteBuf.readUnsignedShortSmart(): Short {
+fun ByteBuf.readUnsignedShortSmart(): Short {
     val peek = getByte(readerIndex()).toInt()
     return if (peek >= 0) {
         readUnsignedByte()
@@ -285,7 +286,7 @@ public fun ByteBuf.readUnsignedShortSmart(): Short {
     }
 }
 
-public fun ByteBuf.readIncrShortSmart(): Int {
+fun ByteBuf.readIncrShortSmart(): Int {
     var total = 0
     var cur = readUnsignedShortSmart()
     while (cur == Short.MAX_VALUE) {
@@ -296,7 +297,7 @@ public fun ByteBuf.readIncrShortSmart(): Int {
     return total
 }
 
-public fun ByteBuf.readIntSmart(): Int {
+fun ByteBuf.readIntSmart(): Int {
     val peek = getByte(readerIndex()).toInt()
     return if (peek >= 0) {
         readUnsignedShort() - Smart.SHORT_MOD
@@ -305,7 +306,7 @@ public fun ByteBuf.readIntSmart(): Int {
     }
 }
 
-public fun ByteBuf.readUnsignedIntSmart(): Int {
+fun ByteBuf.readUnsignedIntSmart(): Int {
     val peek = getByte(readerIndex()).toInt()
     return if (peek >= 0) {
         readUnsignedShort()
@@ -314,7 +315,7 @@ public fun ByteBuf.readUnsignedIntSmart(): Int {
     }
 }
 
-public fun ByteBuf.readNullableUnsignedIntSmart(): Int? {
+fun ByteBuf.readNullableUnsignedIntSmart(): Int? {
     val peek = getByte(readerIndex()).toInt()
     return if (peek >= 0) {
         val result = readUnsignedShort()
@@ -324,7 +325,7 @@ public fun ByteBuf.readNullableUnsignedIntSmart(): Int? {
     }
 }
 
-public fun ByteBuf.readVarInt(): Int {
+fun ByteBuf.readVarInt(): Int {
     var prev = 0
     var temp = readByte().toInt()
     while (temp < 0) {
@@ -334,7 +335,7 @@ public fun ByteBuf.readVarInt(): Int {
     return prev or temp
 }
 
-public fun ByteBuf.readString(charset: Charset = Charsets.CP_1252): String {
+fun ByteBuf.readString(charset: Charset = Charsets.CP_1252): String {
     val end = forEachByte(ByteProcessor.FIND_NUL)
     if (end == -1) throw IOException("String does not terminate.")
     val value = toString(readerIndex(), end - readerIndex(), charset)
@@ -342,19 +343,19 @@ public fun ByteBuf.readString(charset: Charset = Charsets.CP_1252): String {
     return value
 }
 
-public fun ByteBuf.readVersionedString(charset: Charset = Charsets.CP_1252, expectedVersion: Int = 0): String {
+fun ByteBuf.readVersionedString(charset: Charset = Charsets.CP_1252, expectedVersion: Int = 0): String {
     val actualVersion = readUnsignedByte().toInt()
     if (actualVersion != expectedVersion) throw IOException("Expected version number did not match actual version.")
     return readString(charset)
 }
 
-public fun ByteBuf.readBytesReversed(length: Int): ByteArray {
+fun ByteBuf.readBytesReversed(length: Int): ByteArray {
     val dest = ByteArray(length)
     readBytesReversed(dest)
     return dest
 }
 
-public fun ByteBuf.readBytesReversed(dest: ByteArray): ByteBuf {
+fun ByteBuf.readBytesReversed(dest: ByteArray): ByteBuf {
     val endReaderIndex = readerIndex() + dest.size - 1
     for ((writerIndex, readerIndex) in (endReaderIndex downTo readerIndex()).withIndex()) {
         dest[writerIndex] = getByte(readerIndex)
@@ -363,26 +364,26 @@ public fun ByteBuf.readBytesReversed(dest: ByteArray): ByteBuf {
     return this
 }
 
-public fun ByteBuf.readBytesAdd(length: Int): ByteArray {
+fun ByteBuf.readBytesAdd(length: Int): ByteArray {
     val dest = ByteArray(length)
     readBytesAdd(dest)
     return dest
 }
 
-public fun ByteBuf.readBytesAdd(dest: ByteArray): ByteBuf {
+fun ByteBuf.readBytesAdd(dest: ByteArray): ByteBuf {
     for (writerIndex in dest.indices) {
         dest[writerIndex] = readByteAdd()
     }
     return this
 }
 
-public fun ByteBuf.readBytesReversedAdd(length: Int): ByteArray {
+fun ByteBuf.readBytesReversedAdd(length: Int): ByteArray {
     val dest = ByteArray(length)
     readBytesReversedAdd(dest)
     return dest
 }
 
-public fun ByteBuf.readBytesReversedAdd(dest: ByteArray): ByteBuf {
+fun ByteBuf.readBytesReversedAdd(dest: ByteArray): ByteBuf {
     val endReaderIndex = readerIndex() + dest.size - 1
     for ((writerIndex, readerIndex) in (endReaderIndex downTo readerIndex()).withIndex()) {
         dest[writerIndex] = getByteAdd(readerIndex)
@@ -391,55 +392,55 @@ public fun ByteBuf.readBytesReversedAdd(dest: ByteArray): ByteBuf {
     return this
 }
 
-public fun ByteBuf.writeByteNeg(value: Int): ByteBuf = writeByte(-value)
+fun ByteBuf.writeByteNeg(value: Int): ByteBuf = writeByte(-value)
 
-public fun ByteBuf.writeByteAdd(value: Int): ByteBuf = writeByte(value + HALF_BYTE)
+fun ByteBuf.writeByteAdd(value: Int): ByteBuf = writeByte(value + HALF_BYTE)
 
-public fun ByteBuf.writeByteSub(value: Int): ByteBuf = writeByte(HALF_BYTE - value)
+fun ByteBuf.writeByteSub(value: Int): ByteBuf = writeByte(HALF_BYTE - value)
 
-public fun ByteBuf.writeShortAdd(value: Int): ByteBuf {
+fun ByteBuf.writeShortAdd(value: Int): ByteBuf {
     writeByte(value shr Byte.SIZE_BITS)
     writeByte(value + HALF_BYTE)
     return this
 }
 
-public fun ByteBuf.writeShortLEAdd(value: Int): ByteBuf {
+fun ByteBuf.writeShortLEAdd(value: Int): ByteBuf {
     writeByte(value + HALF_BYTE)
     writeByte(value shr Byte.SIZE_BITS)
     return this
 }
 
-public fun ByteBuf.writeMediumLME(value: Int): ByteBuf {
+fun ByteBuf.writeMediumLME(value: Int): ByteBuf {
     writeShortLE(value shr Byte.SIZE_BITS)
     writeByte(value)
     return this
 }
 
-public fun ByteBuf.writeMediumRME(value: Int): ByteBuf {
+fun ByteBuf.writeMediumRME(value: Int): ByteBuf {
     writeByte(value shr Short.SIZE_BITS)
     writeShortLE(value)
     return this
 }
 
-public fun ByteBuf.writeIntME(value: Int): ByteBuf {
+fun ByteBuf.writeIntME(value: Int): ByteBuf {
     writeShortLE(value shr Short.SIZE_BITS)
     writeShortLE(value)
     return this
 }
 
-public fun ByteBuf.writeIntIME(value: Int): ByteBuf {
+fun ByteBuf.writeIntIME(value: Int): ByteBuf {
     writeShort(value)
     writeShort(value shr Short.SIZE_BITS)
     return this
 }
 
-public fun ByteBuf.writeSmallLong(value: Long): ByteBuf {
+fun ByteBuf.writeSmallLong(value: Long): ByteBuf {
     writeMedium((value shr Medium.SIZE_BITS).toInt())
     writeMedium(value.toInt())
     return this
 }
 
-public fun ByteBuf.writeShortSmart(value: Int): ByteBuf = when (value) {
+fun ByteBuf.writeShortSmart(value: Int): ByteBuf = when (value) {
     in Smart.MIN_BYTE_VALUE..Smart.MAX_BYTE_VALUE -> writeByte(value + Smart.BYTE_MOD)
     in Smart.MIN_SHORT_VALUE..Smart.MAX_SHORT_VALUE -> {
         writeShort((Short.MAX_VALUE + 1) or (value + Smart.SHORT_MOD))
@@ -449,7 +450,7 @@ public fun ByteBuf.writeShortSmart(value: Int): ByteBuf = when (value) {
     )
 }
 
-public fun ByteBuf.writeUnsignedShortSmart(value: Int): ByteBuf = when (value) {
+fun ByteBuf.writeUnsignedShortSmart(value: Int): ByteBuf = when (value) {
     in USmart.MIN_BYTE_VALUE..USmart.MAX_BYTE_VALUE -> writeByte(value)
     in USmart.MIN_SHORT_VALUE..USmart.MAX_SHORT_VALUE -> writeShort((Short.MAX_VALUE + 1) or value)
     else -> throw IllegalArgumentException(
@@ -457,7 +458,7 @@ public fun ByteBuf.writeUnsignedShortSmart(value: Int): ByteBuf = when (value) {
     )
 }
 
-public fun ByteBuf.writeIncrShortSmart(value: Int): ByteBuf {
+fun ByteBuf.writeIncrShortSmart(value: Int): ByteBuf {
     var remaining = value
     while (remaining >= Short.MAX_VALUE.toInt()) {
         writeUnsignedShortSmart(Short.MAX_VALUE.toInt())
@@ -467,7 +468,7 @@ public fun ByteBuf.writeIncrShortSmart(value: Int): ByteBuf {
     return this
 }
 
-public fun ByteBuf.writeIntSmart(value: Int): ByteBuf = when (value) {
+fun ByteBuf.writeIntSmart(value: Int): ByteBuf = when (value) {
     in Smart.MIN_SHORT_VALUE..Smart.MAX_SHORT_VALUE -> writeShort(value + Smart.SHORT_MOD)
     in Smart.MIN_INT_VALUE..Smart.MAX_INT_VALUE -> {
         writeInt(Int.MIN_VALUE or (value + Smart.INT_MOD))
@@ -477,7 +478,7 @@ public fun ByteBuf.writeIntSmart(value: Int): ByteBuf = when (value) {
     )
 }
 
-public fun ByteBuf.writeUnsignedIntSmart(value: Int): ByteBuf = when (value) {
+fun ByteBuf.writeUnsignedIntSmart(value: Int): ByteBuf = when (value) {
     in USmart.MIN_SHORT_VALUE..USmart.MAX_SHORT_VALUE -> writeShort(value)
     in USmart.MIN_INT_VALUE..USmart.MAX_INT_VALUE -> writeInt(Int.MIN_VALUE or value)
     else -> throw IllegalArgumentException(
@@ -485,7 +486,7 @@ public fun ByteBuf.writeUnsignedIntSmart(value: Int): ByteBuf = when (value) {
     )
 }
 
-public fun ByteBuf.writeNullableUnsignedIntSmart(value: Int?): ByteBuf = when (value) {
+fun ByteBuf.writeNullableUnsignedIntSmart(value: Int?): ByteBuf = when (value) {
     null -> writeShort(USmart.MAX_SHORT_VALUE)
     in USmart.MIN_SHORT_VALUE until USmart.MAX_SHORT_VALUE -> writeShort(value)
     in USmart.MIN_INT_VALUE..USmart.MAX_INT_VALUE -> writeInt(Int.MIN_VALUE or value)
@@ -494,7 +495,7 @@ public fun ByteBuf.writeNullableUnsignedIntSmart(value: Int?): ByteBuf = when (v
     )
 }
 
-public fun ByteBuf.writeVarInt(value: Int): ByteBuf {
+fun ByteBuf.writeVarInt(value: Int): ByteBuf {
     if (value and -128 != 0) {
         if (value and -16384 != 0) {
             if (value and -2097152 != 0) {
@@ -511,48 +512,48 @@ public fun ByteBuf.writeVarInt(value: Int): ByteBuf {
     return this
 }
 
-public fun ByteBuf.writeString(value: String, charset: Charset = Charsets.CP_1252): ByteBuf {
+fun ByteBuf.writeString(value: String, charset: Charset = Charsets.CP_1252): ByteBuf {
     writeCharSequence(value, charset)
     writeByte(0)
     return this
 }
 
-public fun ByteBuf.writeVersionedString(value: String, charset: Charset = Charsets.CP_1252, version: Int = 0): ByteBuf {
+fun ByteBuf.writeVersionedString(value: String, charset: Charset = Charsets.CP_1252, version: Int = 0): ByteBuf {
     writeByte(version)
     writeString(value, charset)
     return this
 }
 
-public fun ByteBuf.writeBytesReversed(src: ByteArray): ByteBuf {
+fun ByteBuf.writeBytesReversed(src: ByteArray): ByteBuf {
     for (i in src.size - 1 downTo 0) {
         writeByte(src[i].toInt())
     }
     return this
 }
 
-public fun ByteBuf.writeBytesReversed(src: ByteBuf): ByteBuf {
+fun ByteBuf.writeBytesReversed(src: ByteBuf): ByteBuf {
     for (i in src.writerIndex() - 1 downTo src.readerIndex()) {
         writeByte(src.getByte(i).toInt())
     }
     return this
 }
 
-public fun ByteBuf.writeBytesAdd(src: ByteArray): ByteBuf = writeBytes(src.map {
+fun ByteBuf.writeBytesAdd(src: ByteArray): ByteBuf = writeBytes(src.map {
     (it + HALF_BYTE).toByte()
 }.toByteArray())
 
-public fun ByteBuf.writeBytesAdd(src: ByteBuf): ByteBuf {
+fun ByteBuf.writeBytesAdd(src: ByteBuf): ByteBuf {
     for (i in src.readerIndex() until src.writerIndex()) {
         writeByte(src.getByte(i) + HALF_BYTE)
     }
     return this
 }
 
-public fun ByteBuf.writeBytesReversedAdd(src: ByteArray): ByteBuf = writeBytes(src.map {
+fun ByteBuf.writeBytesReversedAdd(src: ByteArray): ByteBuf = writeBytes(src.map {
     (it + HALF_BYTE).toByte()
 }.reversed().toByteArray())
 
-public fun ByteBuf.writeBytesReversedAdd(src: ByteBuf): ByteBuf {
+fun ByteBuf.writeBytesReversedAdd(src: ByteBuf): ByteBuf {
     for (i in src.writerIndex() - 1 downTo src.readerIndex()) {
         writeByte(src.getByte(i) + HALF_BYTE)
     }
@@ -586,9 +587,4 @@ internal fun ByteBuf.writeParameters(parameters: Map<Int, Any>) {
             writeInt(value as Int)
         }
     }
-}
-
-fun ByteBuf.readSignedSmart(): Int {
-    val value: Int = (array()[readerIndex()] and 0xff.toByte()).toInt()
-    return if (value < 128) readUnsignedByte() - 64 else readUnsignedShort() - 49152
 }

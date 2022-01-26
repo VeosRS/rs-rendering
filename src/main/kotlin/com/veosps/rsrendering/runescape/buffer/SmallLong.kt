@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("unused")
+
 package com.veosps.rsrendering.runescape.buffer
 
-public object SmallLong {
-    public const val SIZE_BYTES: Int = 6
-    public const val SIZE_BITS: Int = SIZE_BYTES * Byte.SIZE_BITS
-    public const val MAX_VALUE: Long = 140_737_488_355_327
-    public const val MIN_VALUE: Long = -140_737_488_355_328
+object SmallLong {
+    const val SIZE_BYTES: Int = 6
+    const val SIZE_BITS: Int = SIZE_BYTES * Byte.SIZE_BITS
+    const val MAX_VALUE: Long = 140_737_488_355_327
+    const val MIN_VALUE: Long = -140_737_488_355_328
 }
 
-public object USmallLong {
-    public const val SIZE_BYTES: Int = SmallLong.SIZE_BYTES
-    public const val SIZE_BITS: Int = SmallLong.SIZE_BITS
-    public const val MAX_VALUE: ULong = 281_474_976_710_655u
-    public const val MIN_VALUE: ULong = 0u
+object USmallLong {
+    const val SIZE_BYTES: Int = SmallLong.SIZE_BYTES
+    const val SIZE_BITS: Int = SmallLong.SIZE_BITS
+    const val MAX_VALUE: ULong = 281_474_976_710_655u
+    const val MIN_VALUE: ULong = 0u
 }

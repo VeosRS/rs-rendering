@@ -5,7 +5,9 @@ package com.veosps.rsrendering.runescape.model
 /**
  * Model to house decoded data from a 3D model in the RuneScape cache.
  */
-data class ModelData(
+data class Model(
+    var modelId: Int = -1,
+    var version: Int = -1,
     var textureUCoordinates: Array<FloatArray> = arrayOf(),
     var textureVCoordinates: Array<FloatArray> = arrayOf(),
     var faceMaterial: ShortArray = shortArrayOf(),
@@ -30,13 +32,11 @@ data class ModelData(
     var textureVertexB: ShortArray = shortArrayOf(),
     var textureVertexC: ShortArray = shortArrayOf(),
     var vertexLabels: IntArray = intArrayOf(),
-    var triangleLabels: IntArray = intArrayOf()
+    var triangleLabels: IntArray = intArrayOf(),
+    var particleVertices: IntArray = intArrayOf(),
+    var vertexWeights: IntArray = intArrayOf(),
+    var triangleSkin: IntArray = intArrayOf()
 ) {
-
-    private fun ShortArray.get(index: Int): Short? {
-        if (isEmpty()) return null
-        return this[index]
-    }
 
     fun computeTextureUVCoordinates() {
         textureUCoordinates = Array(triangleCount) { floatArrayOf() }

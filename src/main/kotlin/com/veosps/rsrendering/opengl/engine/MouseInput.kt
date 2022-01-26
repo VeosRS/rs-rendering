@@ -2,55 +2,50 @@ package com.veosps.rsrendering.opengl.engine
 
 import org.joml.Vector2d
 import org.joml.Vector2f
-import org.lwjgl.glfw.GLFW
+import org.lwjgl.glfw.GLFW.*
 
+class MouseInput(
+    private val previousPosition: Vector2d = Vector2d(-1.0, -1.0),
+    private val currentPosition: Vector2d = Vector2d(0.0, 0.0),
+    val displayVector: Vector2f = Vector2f()
+) {
 
-class MouseInput {
-    private val previousPos: Vector2d
-    private val currentPos: Vector2d
-    val displVec: Vector2f
-    private var inWindow = false
-    var isLeftButtonPressed = false
+    private var windowActive = false
+
+    var leftButtonPressed = false
         private set
-    var isRightButtonPressed = false
+    var rightButtonPressed = false
         private set
-
-    init {
-        previousPos = Vector2d(-1.0, -1.0)
-        currentPos = Vector2d(0.0, 0.0)
-        displVec = Vector2f()
-    }
 
     fun init(window: Window) {
-        GLFW.glfwSetCursorPosCallback(window.windowHandle) { windowHandle: Long, xpos: Double, ypos: Double ->
-            currentPos.x = xpos
-            currentPos.y = ypos
+        glfwSetCursorPosCallback(window.windowHandle) { _, xPos, yPos ->
+            currentPosition.x = xPos
+            currentPosition.y = yPos
         }
-        GLFW.glfwSetCursorEnterCallback(
-            window.windowHandle
-        ) { windowHandle: Long, entered: Boolean -> inWindow = entered }
-        GLFW.glfwSetMouseButtonCallback(window.windowHandle) { windowHandle: Long, button: Int, action: Int, mode: Int ->
-            isLeftButtonPressed = button == GLFW.GLFW_MOUSE_BUTTON_1 && action == GLFW.GLFW_PRESS
-            isRightButtonPressed = button == GLFW.GLFW_MOUSE_BUTTON_2 && action == GLFW.GLFW_PRESS
+        glfwSetCursorEnterCallback(window.windowHandle) { _, entered ->
+            windowActive = entered
+        }
+        glfwSetMouseButtonCallback(window.windowHandle) { handle, button, action, mode ->
+            leftButtonPressed = button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS
+            rightButtonPressed = button == GLFW_MOUSE_BUTTON_2 && action == GLFW_PRESS
         }
     }
 
-    fun input(window: Window?) {
-        displVec.x = 0f
-        displVec.y = 0f
-        if (previousPos.x > 0 && previousPos.y > 0 && inWindow) {
-            val deltax = currentPos.x - previousPos.x
-            val deltay = currentPos.y - previousPos.y
-            val rotateX = deltax != 0.0
-            val rotateY = deltay != 0.0
-            if (rotateX) {
-                displVec.y = deltax.toFloat()
-            }
-            if (rotateY) {
-                displVec.x = deltay.toFloat()
-            }
+    fun input() {
+        displayVector.x = 0f
+        displayVector.y = 0f
+
+        if (previousPosition.x > 0 && previousPosition.y > 0 && windowActive) {
+            val deltaX = currentPosition.x - previousPosition.x
+            val deltaY = currentPosition.y - previousPosition.y
+            val rotateX = deltaX != 0.0
+            val rotateY = deltaY != 0.0
+
+            if (rotateX) displayVector.y = deltaX.toFloat()
+            if (rotateY) displayVector.x = deltaY.toFloat()
         }
-        previousPos.x = currentPos.x
-        previousPos.y = currentPos.y
+
+        previousPosition.x = currentPosition.x
+        previousPosition.y = currentPosition.y
     }
 }

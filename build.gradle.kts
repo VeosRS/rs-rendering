@@ -27,6 +27,7 @@ dependencies {
     implementation("com.displee:rs-cache-library:6.8.1")
     implementation("io.netty:netty-buffer:4.1.73.Final")
 
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
     implementation("org.springframework.boot:spring-boot-starter-web")
 
     implementation("com.michael-bull.kotlin-inline-logger:kotlin-inline-logger-jvm:1.0.3")

@@ -1,100 +1,73 @@
 package com.veosps.rsrendering.opengl.engine
 
-import org.lwjgl.glfw.GLFW
+import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
-import org.lwjgl.opengl.GL
-import org.lwjgl.opengl.GL11
-import org.lwjgl.system.MemoryUtil
+import org.lwjgl.opengl.GL.createCapabilities
+import org.lwjgl.opengl.GL11.*
+import org.lwjgl.system.MemoryUtil.NULL
 
+class Window(
+    private val title: String,
+    var width: Int,
+    var height: Int,
+    var resized: Boolean = false,
+    val vSync: Boolean = true
+) {
 
-class Window(val title: String, var width: Int, var height: Int, private var vSync: Boolean) {
-    var windowHandle: Long = 0
-        private set
-    var isResized = false
+    var windowHandle: Long = -1L
+
+    fun setClearColor(red: Float, green: Float, blue: Float, alpha: Float) =
+        glClearColor(red, green, blue, alpha)
+
+    fun isKeyPressed(keyCode: Int) =
+        glfwGetKey(windowHandle, keyCode) == GLFW_PRESS
+
+    fun windowShouldCLose() =
+        glfwWindowShouldClose(windowHandle)
+
     fun init() {
-        // Setup an error callback. The default implementation
-        // will print the error message in System.err.
         GLFWErrorCallback.createPrint(System.err).set()
 
-        // Initialize GLFW. Most GLFW functions will not work before doing this.
-        check(GLFW.glfwInit()) { "Unable to initialize GLFW" }
-        GLFW.glfwDefaultWindowHints() // optional, the current window hints are already the default
-        GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GL11.GL_FALSE) // the window will stay hidden after creation
-        GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GL11.GL_TRUE) // the window will be resizable
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3)
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 2)
-        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
-        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL11.GL_TRUE)
+        if (!glfwInit()) error("Unable to initialize GLFW.")
 
-        // Create the window
-        windowHandle = GLFW.glfwCreateWindow(width, height, title, MemoryUtil.NULL, MemoryUtil.NULL)
-        if (windowHandle == MemoryUtil.NULL) {
-            throw RuntimeException("Failed to create the GLFW window")
-        }
+        glfwDefaultWindowHints()
+        glfwWindowHint(GLFW_VISIBLE, GL_FALSE)
+        glfwWindowHint(GLFW_RESIZABLE, GL_TRUE)
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2)
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE)
 
-        // Setup resize callback
-        GLFW.glfwSetFramebufferSizeCallback(windowHandle) { window: Long, width: Int, height: Int ->
+        windowHandle = glfwCreateWindow(width, height, title, NULL, NULL)
+
+        glfwSetFramebufferSizeCallback(windowHandle) { _, width, height ->
             this.width = width
             this.height = height
-            isResized = true
+            this.resized = true
         }
 
-        // Setup a key callback. It will be called every time a key is pressed, repeated or released.
-        GLFW.glfwSetKeyCallback(
-            windowHandle
-        ) { window: Long, key: Int, scancode: Int, action: Int, mods: Int ->
-            if (key == GLFW.GLFW_KEY_ESCAPE && action == GLFW.GLFW_RELEASE) {
-                GLFW.glfwSetWindowShouldClose(window, true) // We will detect this in the rendering loop
-            }
+        glfwSetKeyCallback(windowHandle) {window, key, _, action, _ ->
+            if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
+                glfwSetWindowShouldClose(window, true)
         }
 
-        // Get the resolution of the primary monitor
-        val vidmode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor())
-        // Center our window
-        GLFW.glfwSetWindowPos(
-            windowHandle,
-            (vidmode!!.width() - width) / 2,
-            (vidmode.height() - height) / 2
-        )
+        val videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor()) ?: error("Failed to get video mode.")
+        glfwSetWindowPos(windowHandle, (videoMode.width() - width) / 2, (videoMode.height() - height) / 2)
 
-        // Make the OpenGL context current
-        GLFW.glfwMakeContextCurrent(windowHandle)
-        if (isvSync()) {
-            // Enable v-sync
-            GLFW.glfwSwapInterval(1)
-        }
+        glfwMakeContextCurrent(windowHandle)
 
-        // Make the window visible
-        GLFW.glfwShowWindow(windowHandle)
-        GL.createCapabilities()
+        if (vSync) glfwSwapInterval(1)
 
-        // Set the clear color
-        GL11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f)
-        GL11.glEnable(GL11.GL_DEPTH_TEST)
-    }
+        glfwShowWindow(windowHandle)
 
-    fun setClearColor(r: Float, g: Float, b: Float, alpha: Float) {
-        GL11.glClearColor(r, g, b, alpha)
-    }
+        createCapabilities()
 
-    fun isKeyPressed(keyCode: Int): Boolean {
-        return GLFW.glfwGetKey(windowHandle, keyCode) == GLFW.GLFW_PRESS
-    }
-
-    fun windowShouldClose(): Boolean {
-        return GLFW.glfwWindowShouldClose(windowHandle)
-    }
-
-    fun isvSync(): Boolean {
-        return vSync
-    }
-
-    fun setvSync(vSync: Boolean) {
-        this.vSync = vSync
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f)
+        glEnable(GL_DEPTH_TEST)
     }
 
     fun update() {
-        GLFW.glfwSwapBuffers(windowHandle)
-        GLFW.glfwPollEvents()
+        glfwSwapBuffers(windowHandle)
+        glfwPollEvents()
     }
 }

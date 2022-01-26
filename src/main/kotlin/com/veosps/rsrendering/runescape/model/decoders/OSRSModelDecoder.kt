@@ -1,19 +1,23 @@
 package com.veosps.rsrendering.runescape.model.decoders
 
-import com.veosps.rsrendering.runescape.buffer.readSignedSmart
-import com.veosps.rsrendering.runescape.model.ModelData
+import com.github.michaelbull.logging.InlineLogger
+import com.veosps.rsrendering.runescape.buffer.readShortSmart
+import com.veosps.rsrendering.runescape.model.Model
 import io.netty.buffer.Unpooled
 import kotlin.experimental.and
 
-/**
- * Decode a model from the RuneScape cache to prepare it for OpenGL to render.
- */
-class OSRSModelDecoder(
-    private val data: ByteArray
-) : IDecoder {
+private val logger = InlineLogger()
 
-    @Suppress("UnnecessaryVariable")
-    override fun decode(): ModelData = with(ModelData()) {
+class OSRSModelDecoder(
+    override val data: ByteArray
+) : ModelDecoder {
+
+    private var headerData = byteArrayOf()
+    private var headerVertices = -1
+    private var headerFaces = -1
+    private var headerTextureFaces = -1
+
+    override fun decode(modelId: Int): Model = with(Model(modelId)) {
         val initialData = Unpooled.wrappedBuffer(data)
 
         val first = initialData.copy()
@@ -21,64 +25,123 @@ class OSRSModelDecoder(
         val third = initialData.copy()
         val fourth = initialData.copy()
         val fifth = initialData.copy()
+        val sixth = initialData.copy()
+        val seventh = initialData.copy()
 
-        first.readerIndex(data.size - 18)
-
+        first.readerIndex(data.size - 23)
         vertexCount = first.readUnsignedShort()
         triangleCount = first.readUnsignedShort()
         texturedFaces = first.readUnsignedByte().toInt()
 
-        val renderTypeOpcode = first.readUnsignedByte().toInt()
-        val renderPriorityOpcode = first.readUnsignedByte().toInt()
-        val triangleAlphaOpcode = first.readUnsignedByte().toInt()
-        val triangleSkinOpcode = first.readUnsignedByte().toInt()
-        val vertexLabelOpcode = first.readUnsignedByte().toInt()
+        headerData = data
+        headerVertices = vertexCount
+        headerFaces = triangleCount
+        headerTextureFaces = texturedFaces
 
-        val verticesXCoordinateOffset = first.readUnsignedShort()
-        val verticesYCoordinateOffset = first.readUnsignedShort()
-        first.readUnsignedShort() // verticesZCoordinateOffset
+        val flag = first.readUnsignedByte().toInt()
+        val hasFaceTypes = (flag and 0x1) == 1
+        val hasParticleEffects = (flag and 0x2) == 2
+        val hasBillboards = (flag and 0x4) == 4
+        val hasVersion = (flag and 0x8) == 8
 
-        val triangleIndicesOffset = first.readUnsignedShort()
+        if (hasVersion) {
+            first.readerIndex(first.readerIndex() - 7)
+            version = first.readUnsignedByte().toInt()
+            first.readerIndex(first.readerIndex() + 6)
+            logger.debug { "Version = $version" }
+        }
 
-        val vertexFlagOffset = 0
+        val modelPriorityOpcode = first.readUnsignedByte().toInt()
+        val modelAlphaOpcode = first.readUnsignedByte().toInt()
+        val modelMuscleOpcode = first.readUnsignedByte().toInt()
+        val modelTextureOpcode = first.readUnsignedByte().toInt()
+        val modelBonesOpcode = first.readUnsignedByte().toInt()
 
-        var readerPos = vertexCount
+        val modelVertexX = first.readUnsignedShort()
+        val modelVertexY = first.readUnsignedShort()
+        val modelVertexZ = first.readUnsignedShort()
+        val modelVertexPoints = first.readUnsignedShort()
 
-        val triangleCompressTypeOffset = readerPos
-        readerPos += triangleCount
+        val modelTextureIndices = first.readUnsignedShort()
+        var textureIdSimple = 0
+        var textureIdComplex = 0
+        var textureIdCube = 0
 
-        val facePriorityOffset = readerPos
-        if (renderPriorityOpcode == 255) readerPos += triangleCount
+        if (texturedFaces > 0) {
+            textureMap = ShortArray(texturedFaces)
+            for (face in 0 until texturedFaces) {
+                val opcode = first.readByte().toShort()
+                textureMap[face] = opcode
 
-        val triangleSkinOffset = readerPos
-        if (triangleSkinOpcode == 1) readerPos += triangleCount
+                if (opcode == 0.toShort()) textureIdSimple++
+                if (opcode >= 1.toShort() && opcode <= 3.toShort()) textureIdComplex++
+                if (opcode == 2.toShort()) textureIdCube++
+            }
+        }
 
-        val renderTypeOffset = readerPos
-        if (renderTypeOpcode == 1) readerPos += triangleCount
+        var readPosition = texturedFaces
 
-        val vertexLabelOffset = readerPos
-        if (vertexLabelOpcode == 1) readerPos += vertexCount
+        val modelVertexOffset = readPosition
+        readPosition += vertexCount
 
-        val triangleAlphaOffset = readerPos
-        if (triangleAlphaOpcode == 1) readerPos += triangleCount
+        val modelRenderTypeOffset = readPosition
+        if (flag == 1) readPosition += triangleCount
 
-        val indicesOffset = readerPos
-        readerPos += triangleIndicesOffset
+        val modelFaceOffset = readPosition
+        readPosition += triangleCount
 
-        val triangleColorOffset = readerPos
-        readerPos += triangleCount * 2
+        val modelFacePrioritiesOffset = readPosition
+        if (modelPriorityOpcode == 255) readPosition += triangleCount
 
-        val textureOffset = readerPos
-        readerPos += texturedFaces * 6
+        val modelMuscleOffset = readPosition
+        if (modelMuscleOpcode == 1) readPosition += triangleCount
 
-        val xOffset = readerPos
-        readerPos += verticesXCoordinateOffset
+        val modelBonesOffset = readPosition
+        if (modelBonesOpcode == 1) readPosition += vertexCount
 
-        val yOffset = readerPos
-        readerPos += verticesYCoordinateOffset
+        val modelAlphaOffset = readPosition
+        if (modelAlphaOpcode == 1) readPosition += triangleCount
 
-        val zOffset = readerPos
+        val modelPointsOffset = readPosition
+        readPosition += modelVertexPoints
 
+        val modelTextureId = readPosition
+        if (modelTextureOpcode == 1) readPosition += triangleCount * 2
+
+        val modelTextureCoordinateOffset = readPosition
+        readPosition += modelTextureIndices
+
+        val modelColorOffset = readPosition
+        readPosition += triangleCount * 2
+
+        val modelVertexXOffset = readPosition
+        readPosition += modelVertexX
+
+        val modelVertexYOffset = readPosition
+        readPosition += modelVertexY
+
+        val modelVertexZOffset = readPosition
+        readPosition += modelVertexZ
+
+        val modelSimpleTextureOffset = readPosition
+        readPosition += textureIdSimple * 6
+
+        val modelComplexTextureOffset = readPosition
+        readPosition += textureIdComplex * 6
+
+        val modelTextureScaleOffset = readPosition
+        readPosition += textureIdComplex * 6
+
+        val modelTextureRotationOffset = readPosition
+        readPosition += textureIdComplex * 2
+
+        val modelTextureDirectionOffset = readPosition
+        readPosition += textureIdComplex
+
+        val modelTextureTranslateOffset = readPosition
+        readPosition += textureIdComplex * 2 + textureIdCube * 2
+
+        particleVertices = IntArray(vertexCount)
         verticesXCoordinate = IntArray(vertexCount)
         verticesYCoordinate = IntArray(vertexCount)
         verticesZCoordinate = IntArray(vertexCount)
@@ -86,162 +149,209 @@ class OSRSModelDecoder(
         faceIndicesB = IntArray(triangleCount)
         faceIndicesC = IntArray(triangleCount)
 
+        if (modelBonesOpcode == 1)
+            vertexWeights = IntArray(vertexCount)
+
+        if (flag == 1)
+            triangleInfo = IntArray(triangleCount)
+
+        if (modelPriorityOpcode == 255)
+            trianglePriorities = ByteArray(triangleCount)
+        else modelPriority = modelPriorityOpcode.toByte()
+
+        if (modelAlphaOpcode == 1)
+            triangleAlpha = IntArray(triangleCount)
+
+        if (modelMuscleOpcode == 1)
+            triangleSkin = IntArray(triangleCount)
+
+        if (modelTextureOpcode == 1)
+            faceMaterial = ShortArray(triangleCount)
+
+        if (modelTextureOpcode == 1 && texturedFaces > 0)
+            faceTexture = ShortArray(triangleCount)
+
+        triangleColors = ShortArray(triangleCount)
         if (texturedFaces > 0) {
-            textureMap = ShortArray(texturedFaces)
             textureVertexA = ShortArray(texturedFaces)
             textureVertexB = ShortArray(texturedFaces)
             textureVertexC = ShortArray(texturedFaces)
         }
 
-        if (vertexLabelOpcode == 1) {
-            vertexLabels = IntArray(vertexCount)
-        }
+        first.readerIndex(modelVertexOffset)
+        second.readerIndex(modelVertexXOffset)
+        third.readerIndex(modelVertexYOffset)
+        fourth.readerIndex(modelVertexZOffset)
+        fifth.readerIndex(modelBonesOffset)
 
-        if (renderTypeOpcode == 1) {
-            triangleInfo = IntArray(triangleCount)
-            faceTexture = ShortArray(triangleCount)
-            faceMaterial = ShortArray(triangleCount)
-            faceTextureMasks = ByteArray(triangleCount)
-        }
-
-        if (renderPriorityOpcode == 255) {
-            trianglePriorities = ByteArray(triangleCount)
-        } else {
-            modelPriority = renderPriorityOpcode.toByte()
-        }
-
-        if (triangleAlphaOpcode == 1) {
-            triangleAlpha = IntArray(triangleCount)
-        }
-
-        if (triangleSkinOpcode == 1) {
-            triangleLabels = IntArray(triangleCount)
-        }
-
-        triangleColors = ShortArray(triangleCount)
-        first.readerIndex(vertexFlagOffset)
-        second.readerIndex(xOffset)
-        third.readerIndex(yOffset)
-        fourth.readerIndex(zOffset)
-        fifth.readerIndex(vertexLabelOffset)
-
-        var baseX = 0
-        var baseY = 0
-        var baseZ = 0
+        var startX = 0
+        var startY = 0
+        var startZ = 0
 
         for (point in 0 until vertexCount) {
-            val flag = first.readUnsignedByte()
+            val positionMask = first.readUnsignedByte()
 
             var x = 0
-            if ((flag and 0x1).toInt() != 0) x = second.readSignedSmart()
+            if ((positionMask and 1) != 0.toShort()) x = second.readShortSmart().toInt()
 
             var y = 0
-            if ((flag and 0x2).toInt() != 0) y = third.readSignedSmart()
+            if ((positionMask and 2) != 0.toShort()) y = third.readShortSmart().toInt()
 
             var z = 0
-            if ((flag and 0x4).toInt() != 0) z = fourth.readSignedSmart()
+            if ((positionMask and 4) != 0.toShort()) z = fourth.readShortSmart().toInt()
 
-            verticesXCoordinate[point] = baseX + x
-            verticesYCoordinate[point] = baseY + y
-            verticesZCoordinate[point] = baseZ + z
+            verticesXCoordinate[point] = startX + x
+            verticesYCoordinate[point] = startY + y
+            verticesZCoordinate[point] = startZ + z
 
-            baseX = verticesXCoordinate[point]
-            baseY = verticesYCoordinate[point]
-            baseZ = verticesZCoordinate[point]
+            startX = verticesXCoordinate[point]
+            startY = verticesYCoordinate[point]
+            startZ = verticesZCoordinate[point]
 
-            if (vertexLabelOpcode == 1) vertexLabels[point] = fifth.readUnsignedByte().toInt()
+            if (vertexWeights.isNotEmpty()) vertexWeights[point] = fifth.readUnsignedByte().toInt()
         }
 
-        first.readerIndex(triangleColorOffset)
-        second.readerIndex(renderTypeOffset)
-        third.readerIndex(facePriorityOffset)
-        fourth.readerIndex(triangleAlphaOffset)
-        fifth.readerIndex(triangleSkinOffset)
+        first.readerIndex(modelColorOffset)
+        second.readerIndex(modelRenderTypeOffset)
+        third.readerIndex(modelFacePrioritiesOffset)
+        fourth.readerIndex(modelAlphaOffset)
+        fifth.readerIndex(modelMuscleOffset)
+        sixth.readerIndex(modelTextureId)
+        seventh.readerIndex(modelTextureCoordinateOffset)
 
         for (face in 0 until triangleCount) {
-            val color = first.readUnsignedShort()
-            triangleColors[face] = color.toShort()
+            triangleColors[face] = (first.readUnsignedShort() and 0xFFFF).toShort()
 
-            if (renderTypeOpcode == 1) triangleInfo[face] = second.readUnsignedByte().toInt()
+            if (flag == 1) triangleInfo[face] = second.readByte().toInt()
 
-            if (renderPriorityOpcode == 255) trianglePriorities[face] = third.readByte()
+            if (modelPriorityOpcode == 255) trianglePriorities[face] = third.readByte()
 
-            if (triangleAlphaOpcode == 1) {
+            if (modelAlphaOpcode == 1) {
                 triangleAlpha[face] = fourth.readByte().toInt()
-                if (triangleAlpha[face] < 0) triangleAlpha[face] = (256 + triangleAlpha[face])
+                if (triangleAlpha[face] < 0)
+                    triangleAlpha[face] = (256 + triangleAlpha[face])
             }
 
-            if (triangleSkinOpcode == 1) triangleLabels[face] = fifth.readUnsignedByte().toInt()
+            if (modelMuscleOpcode == 1)
+                triangleSkin[face] = fifth.readUnsignedByte().toInt()
+
+            if (modelTextureOpcode == 1) {
+                faceMaterial[face] = (sixth.readUnsignedShort() - 1).toShort()
+                if (faceMaterial[face] >= 0) {
+                    if (triangleInfo.isNotEmpty()) {
+                        if (triangleInfo[face] < 2
+                            && triangleColors[face] != 127.toShort()
+                            && triangleColors[face] != (-27075).toShort()
+                            && triangleColors[face] != 8128.toShort()
+                            && triangleColors[face] != 7510.toShort()
+                        ) {
+                            faceMaterial[face] = -1
+                        }
+                    }
+                }
+
+                if (faceMaterial[face] != (-1).toShort() && faceMaterial[face] >= 0 && faceMaterial[face] <= 85)
+                    triangleColors[face] = 127
+            }
+
+            if (faceTexture.isNotEmpty() && faceMaterial[face] != (-1).toShort())
+                faceTexture[face] = seventh.readUnsignedByte()
         }
 
-        first.readerIndex(indicesOffset)
-        second.readerIndex(triangleCompressTypeOffset)
+        first.readerIndex(modelPointsOffset)
+        second.readerIndex(modelFaceOffset)
 
-        var indexA = 0
-        var indexB = 0
-        var indexC = 0
-        var offset = 0
-        var coordinate: Int
-
+        var a = 0
+        var b = 0
+        var c = 0
+        var lastCoordinate = 0
         for (face in 0 until triangleCount) {
             val opcode = second.readUnsignedByte().toInt()
-
             if (opcode == 1) {
-                indexA = first.readSignedSmart() + offset
-                offset = indexA
-                indexB = first.readSignedSmart() + offset
-                offset = indexB
-                indexC = first.readSignedSmart() + offset
-                offset = indexC
+                a = first.readShortSmart().toInt() + lastCoordinate
+                lastCoordinate = a
+                b = first.readShortSmart().toInt() + lastCoordinate
+                lastCoordinate = b
+                c = first.readShortSmart().toInt() + lastCoordinate
+                lastCoordinate = c
 
-                faceIndicesA[face] = indexA
-                faceIndicesB[face] = indexB
-                faceIndicesC[face] = indexC
+                faceIndicesA[face] = a
+                faceIndicesB[face] = b
+                faceIndicesC[face] = c
             }
 
             if (opcode == 2) {
-                indexB = indexC
-                indexC = first.readSignedSmart() + offset
-                offset = indexC
-
-                faceIndicesA[face] = indexA
-                faceIndicesB[face] = indexB
-                faceIndicesC[face] = indexC
+                b = c
+                c = first.readShortSmart() + lastCoordinate
+                lastCoordinate = c
+                faceIndicesA[face] = a
+                faceIndicesB[face] = b
+                faceIndicesC[face] = c
             }
 
             if (opcode == 3) {
-                indexA = indexC
-                indexC = first.readSignedSmart() + offset
-                offset = indexC
-                faceIndicesA[face] = indexA
-                faceIndicesB[face] = indexB
-                faceIndicesC[face] = indexC
+                a = c
+                c = first.readShortSmart() + lastCoordinate
+                lastCoordinate = c
+                faceIndicesA[face] = a
+                faceIndicesB[face] = b
+                faceIndicesC[face] = c
             }
 
             if (opcode == 4) {
-                coordinate = indexA
-                indexA = indexB
-                indexB = coordinate
-                indexC = first.readSignedSmart() + offset
-                offset = indexC
-
-                faceIndicesA[face] = indexA
-                faceIndicesB[face] = indexB
-                faceIndicesC[face] = indexC
+                val l14 = a
+                a = b
+                b = l14
+                c = first.readShortSmart() + lastCoordinate
+                lastCoordinate = c
+                faceIndicesA[face] = a
+                faceIndicesB[face] = b
+                faceIndicesC[face] = c
             }
         }
 
-        first.readerIndex(textureOffset)
+        first.readerIndex(modelSimpleTextureOffset)
+        second.readerIndex(modelComplexTextureOffset)
+        third.readerIndex(modelTextureScaleOffset)
+        fourth.readerIndex(modelTextureRotationOffset)
+        fifth.readerIndex(modelTextureDirectionOffset)
+        sixth.readerIndex(modelTextureTranslateOffset)
 
         for (face in 0 until texturedFaces) {
-            textureMap[face] = 0
-            textureVertexA[face] = first.readUnsignedShort().toShort()
-            textureVertexB[face] = first.readUnsignedShort().toShort()
-            textureVertexC[face] = first.readUnsignedShort().toShort()
+            val opcode = (textureMap[face] and 0xff).toInt()
+
+            if (opcode == 0) {
+                textureVertexA[face] = first.readUnsignedShort().toShort()
+                textureVertexB[face] = first.readUnsignedShort().toShort()
+                textureVertexC[face] = first.readUnsignedShort().toShort()
+            }
+
+            if (opcode in 1..3) {
+                textureVertexA[face] = second.readUnsignedShort().toShort()
+                textureVertexB[face] = second.readUnsignedShort().toShort()
+                textureVertexC[face] = second.readUnsignedShort().toShort()
+            }
         }
+
+        convertTexturesToOldFormat()
+
+        return this
+    }
+
+    private fun Model.convertTexturesToOldFormat() {
+        if (faceMaterial.isEmpty() || faceTexture.isEmpty()) return
+        if (faceMaterial.any { it > 117 }) return
 
         if (triangleInfo.isEmpty()) triangleInfo = IntArray(triangleCount)
 
-        return@with this
+        for (i in 0 until triangleCount) {
+            if (faceMaterial[i] != (-1).toShort() && faceTexture[i] >= 0) {
+                val mask = 2 + (faceTexture[i] * 4)
+                triangleInfo[i] = mask
+                triangleColors[i] = faceMaterial[i]
+            } else {
+                triangleInfo[i] = 0
+            }
+        }
     }
 }

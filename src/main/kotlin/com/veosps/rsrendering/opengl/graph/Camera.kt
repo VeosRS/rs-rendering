@@ -27,13 +27,15 @@ class Camera(
     fun move(offsetX: Float, offsetY: Float, offsetZ: Float) {
 
         if (offsetZ != 0f) {
-            position.x += sinF(radians(rotation.y)) * -1.0f * offsetZ
-            position.z += cosF(radians(rotation.y)) * offsetZ
+            println("Moving backwards and forwards?!")
+            position.x += sinF(radians(rotation.y())) * -1.0f * offsetZ
+            position.z += cosF(radians(rotation.y())) * offsetZ
         }
 
         if (offsetX != 0f) {
-            position.x = sinF(radians((rotation.y - 90))) * -1.0f * offsetX
-            position.z = cosF(radians((rotation.y - 90))) * offsetX
+            println("Moving left and right?!")
+            position.x = sinF(radians((rotation.y() - 90))) * -1.0f * offsetX
+            position.z = cosF(radians((rotation.y() - 90))) * offsetX
         }
 
         position.y += offsetY

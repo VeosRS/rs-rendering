@@ -3,20 +3,23 @@ package com.veosps.rsrendering.runescape.cache
 import com.displee.cache.CacheLibrary
 import com.veosps.rsrendering.opengl.game.DummyInitializer
 import com.veosps.rsrendering.runescape.cache.types.TypeManager
+import com.veosps.rsrendering.runescape.loaders.OSRSTextureLoader
 import org.springframework.beans.factory.InitializingBean
 import org.springframework.stereotype.Component
-import java.nio.file.Path
 
 lateinit var cache: CacheLibrary
+lateinit var texLoader: OSRSTextureLoader
 
 @Component
 class CacheInitializer(
     private val typeManager: TypeManager,
-    private val dummyInitializer: DummyInitializer
+    private val textureLoader: OSRSTextureLoader,
+    private val dummyInitializer: DummyInitializer,
 ) : InitializingBean {
 
     override fun afterPropertiesSet() {
         cache = CacheLibrary("./data/cache/")
+        texLoader = textureLoader
 
         modelArchive().cache()
         //binariesArchive().cache()
@@ -27,10 +30,12 @@ class CacheInitializer(
         //musicJingleArchive().cache()
         //musicTrackArchive().cache()
         //soundEffectArchive().cache()
-        //spriteArchive().cache()
-        //textureArchive().cache()
+        spriteIndex().cache()
+        textureIndex().cache()
 
         typeManager.load()
+
+        textureLoader.load()
 
         dummyInitializer.start()
     }
@@ -45,5 +50,5 @@ fun mapArchive() = cache.index(5)
 fun musicJingleArchive() = cache.index(11)
 fun musicTrackArchive() = cache.index(6)
 fun soundEffectArchive() = cache.index(4)
-fun spriteArchive() = cache.index(8)
-fun textureArchive() = cache.index(9)
+fun spriteIndex() = cache.index(8)
+fun textureIndex() = cache.index(9)

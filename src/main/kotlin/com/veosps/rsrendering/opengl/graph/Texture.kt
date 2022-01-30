@@ -1,43 +1,38 @@
 package com.veosps.rsrendering.opengl.graph
 
+import com.veosps.rsrendering.utils.getRGBA
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL30.glGenerateMipmap
-import org.lwjgl.stb.STBImage.*
-import org.lwjgl.system.MemoryStack
+import java.awt.image.BufferedImage
 import java.nio.ByteBuffer
 
-class Texture(fileName: String) {
-    val id = loadTexture(fileName)
+class Texture(private val image: BufferedImage) {
+    val id = loadTexture()
 
     fun bind() = glBindTexture(GL_TEXTURE_2D, id)
     fun cleanUp() = glDeleteTextures(id)
 
-    companion object {
+    private fun loadTexture(): Int {
+        val buffer = generateTextureBuffer()
 
-        fun loadTexture(fileName: String): Int {
-            var width: Int
-            var height: Int
-            var buffer: ByteBuffer
+        val textureId = glGenTextures()
+        glBindTexture(GL_TEXTURE_2D, textureId)
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
+        glGenerateMipmap(GL_TEXTURE_2D)
 
-            MemoryStack.stackPush().use { stack ->
-                val w = stack.mallocInt(1)
-                val h = stack.mallocInt(1)
-                val channel = stack.mallocInt(1)
+        return textureId
+    }
 
-                buffer = stbi_load(fileName, w, h, channel, 4) ?: error("Image file '$fileName' not loaded: ${stbi_failure_reason()}")
+    private fun generateTextureBuffer(): ByteBuffer {
+        val buffer = ByteBuffer.allocateDirect(4 * image.width * image.height)
 
-                width = w.get()
-                height = h.get()
+        for (y in 0 until image.height) {
+            for (x in 0 until image.width) {
+                buffer.put(image.getRGBA(x, y))
             }
-
-            val textureId = glGenTextures()
-            glBindTexture(GL_TEXTURE_2D, textureId)
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
-            glGenerateMipmap(GL_TEXTURE_2D)
-            stbi_image_free(buffer)
-
-            return textureId
         }
+
+        return buffer.flip()
     }
 }

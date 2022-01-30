@@ -588,3 +588,11 @@ internal fun ByteBuf.writeParameters(parameters: Map<Int, Any>) {
         }
     }
 }
+
+fun ByteBuf.read24BitInt() =
+    (readUnsignedByte().toInt() shl 16) + (readUnsignedByte().toInt() shl 8) + readUnsignedByte()
+
+public fun ByteBuf.readSmallSmart(): Int {
+    val peak = getUnsignedByte(readerIndex())
+    return if (peak < 128) readByte() - 64 else readUnsignedShort() - 49152
+}
